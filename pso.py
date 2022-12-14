@@ -1,6 +1,4 @@
 import numpy as np
-import math
-import matplotlib.pyplot as plt
 import sys
 
 class Item:
@@ -8,6 +6,9 @@ class Item:
         self.weight = weight
         self.value = value
 
+#generate uniformly distributed integer initial coordinates for all particles
+#initial positions may not be feasible, but they are as close to feasible ones as possible
+#upper bound for i-th coordinate is W / weight[i], lower is 0
 def init_x(n, d, items, w_max):
     population = []
     rng = np.random.default_rng()
@@ -19,6 +20,8 @@ def init_x(n, d, items, w_max):
         population.append(gene)
     return population
 
+#generate uniformly distributed velocities for all particles
+#velocities vary from v_min to v_max
 def init_v(n, d, v_max, v_min):
     v = []
     for i in range(n):
@@ -30,6 +33,7 @@ def init_v(n, d, v_max, v_min):
         v.append(vi)
     return v
 
+#fitness of current swarm positions (total value of all items / 0 if non-feasible)
 def fitness(p, n, d, items, w_max):
     fitvalue = []
     fitweight = []
@@ -45,6 +49,7 @@ def fitness(p, n, d, items, w_max):
         fitweight.append(a)
     return fitvalue
 
+#update personal best value and position for each particle
 def update_p_best(p, fitvalue, p_best, px, m):
     pb = p_best
     for i in range(m):
@@ -53,6 +58,7 @@ def update_p_best(p, fitvalue, p_best, px, m):
             px[i] = p[i]
     return pb, px
 
+#update global best value and position for swarm as a whole
 def update_g_best(p, p_best, g_best, g, m):
     gb = g_best
     for i in range(m):
@@ -61,6 +67,9 @@ def update_g_best(p, p_best, g_best, g, m):
             g = p[i].copy()
     return gb, g
 
+#calculate new velocities for all particles, based on personal best and global best, known at the moment
+#c1, c2 are weights which affect how much particles attract to personal and global best positions respectively
+#velocities are bounded by vmin and vmax, so that as few particles as possible go out of feasible range per iteration
 def update_v(v, x, m, n, p_best, g, c1, c2, vmax, vmin):
     rng = np.random.default_rng()
     for i in range(m):
@@ -74,6 +83,7 @@ def update_v(v, x, m, n, p_best, g, c1, c2, vmax, vmin):
                 v[i][j] = vmax
     return v
 
+#update positions based on current ones and velocities
 def update_x(x, v, m, n, items, w_max):
     for i in range(m):
         for j in range(n):
